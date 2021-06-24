@@ -113,8 +113,11 @@ assign tmsReset = iTms & tmsQ1 & tmsQ2 & tmsQ3 & tmsQ4;
 *
 ********************************************/
 always @(posedge iTck or negedge iTrst) begin
-    if (iTrst == 0 || tmsReset == 0) begin
+    if (iTrst == 0) begin
         currentState <= pTestLogicReset;
+    end
+    else if(tmsReset == 0)begin
+	currentState <= pTestLogicReset;
     end
     else begin
         case (currentState)

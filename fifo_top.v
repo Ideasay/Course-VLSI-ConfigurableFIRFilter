@@ -51,11 +51,11 @@ reg[3:0] rAddr;//check already
 reg[3:0] wAddr;//check already
 //for sync read/write ptr
 //read and write pointer buffer
-reg[4:0] wrPtr;//checked
-reg[4:0] wrPtr1;
+reg[4:0] rPtr2D;//checked
+reg[4:0] rPtr1D;
 
-reg[4:0] rwPtr;//checked
-reg[4:0] rwPtr1;
+reg[4:0] wPtr2D;//checked
+reg[4:0] wPtr1D;
 
 reg[4:0] rPtr;//real read ptr checked grey
 reg[4:0] wPtr;//real write ptr checked grey
@@ -80,9 +80,15 @@ reg rAddrMsb;
 *fifo buffer
 *
 ********************************************/
-assign C = iWCLK;
-assign E = (~oFULL) & iWINC;
-assign oRDAT = fifoRegs[rAddr];
+//assign C = iWCLK;
+//assign E = (~oFULL) & iWINC;
+//assign oRDAT = fifoRegs[rAddr];
+always @ (*) begin
+    C = iWCLK;
+    E = (~oFULL) & iWINC;
+    oRDAT = fifoRegs[rAddr];
+end
+
 always @(posedge C) begin
     if(E)
         fifoRegs[wAddr] <= iWDAT; 
@@ -105,9 +111,9 @@ always@(posedge wr_clk )
 */
 always @(posedge iWCLK or posedge iWRST) begin
     if(iWRST)
-        {wrPtr,wrPtr1} <= 0;
+        {rPtr2D,rPtr1D} <= 0;
     else
-        {wrPtr,wrPtr1} <= {wrPtr1,rPtr};
+        {rPtr2D,rPtr1D} <= {rPtr1D,rPtr};
 end
 /********************************************
 *write grey to binary
@@ -140,7 +146,11 @@ always @(posedge iWCLK or posedge iWRST) begin
     else
         wAddrMsb <= wgnext[4]^wgnext[3];
 end
-assign wAddr = {wAddrMsb,wPtr[2:0]};
+always @ (*) begin
+    wAddr = {wAddrMsb,wPtr[2:0]};
+end
+
+//assign wAddr = {wAddrMsb,wPtr[2:0]};
 /********************************************
 *full signal
 *
@@ -149,7 +159,7 @@ always @(posedge iWCLK or posedge iWRST) begin
     if(iWRST)
         oFULL <= 0;
     else
-        oFULL <= (wgnext == {~wrPtr[4:3],wrPtr[2:0]});
+        oFULL <= (wgnext == {~rPtr2D[4:3],rPtr2D[2:0]});
 end
 /********************************************
 *write ptr
@@ -171,9 +181,9 @@ end
 ********************************************/
 always @(posedge iRCLK or posedge iRRST) begin
     if(iRRST)
-        {rwPtr,rwPtr1} <= 0;
+        {wPtr2D,wPtr1D} <= 0;
     else
-        {rwPtr,rwPtr1} <= {rwPtr1,wPtr};
+        {wPtr2D,wPtr1D} <= {wPtr1D,wPtr};
 end
 /********************************************
 *read grey to binary
@@ -206,7 +216,10 @@ always @(posedge iRCLK or posedge iRRST) begin
     else
         rAddrMsb <= rgnext[4]^rgnext[3];
 end
-assign rAddr = {rAddrMsb,rPtr[2:0]};
+always @ (*) begin
+    rAddr = {rAddrMsb,rPtr[2:0]};
+end
+//assign rAddr = {rAddrMsb,rPtr[2:0]};
 /********************************************
 *empty signal
 *
@@ -215,7 +228,7 @@ always @(posedge iRCLK or posedge iRRST) begin
     if(iRRST)
         oEMPT <= 0;
     else
-        oEMPT <= (rgnext == rwPtr);
+        oEMPT <= (rgnext == wPtr2D);
 end
 /********************************************
 *READ ptr
@@ -228,21 +241,5 @@ always @(posedge iRCLK or posedge iRRST) begin
         rPtr <= rgnext;
 end
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 endmodule
+

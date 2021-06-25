@@ -8,8 +8,6 @@ module jtag_top(
     oTdoEnable,
     //typical jtag port end
 
-    oCurrentState,
-
     //for CONFIG CHAIN
     oWrEn,
     iDesync
@@ -54,8 +52,6 @@ input iTdi;
 input iTrst;
 output oTdo;
 output oTdoEnable;
-
-output oCurrentState;
 
 output oWrEn;
 input iDesync;
@@ -116,9 +112,9 @@ always @(posedge iTck or negedge iTrst) begin
     if (iTrst == 0) begin
         currentState <= pTestLogicReset;
     end
-    else if(tmsReset == 0)begin
-	currentState <= pTestLogicReset;
-    end
+    /*else if(tmsReset == 1)begin
+	    currentState <= pTestLogicReset;
+    end*/
     else begin
         case (currentState)
             pTestLogicReset:
@@ -269,12 +265,12 @@ always @(posedge iTck) begin
     else if(~sync)
         sftCnt <= 0;
     else if (currentState == pShiftDR && IR == CONFIG && sync) begin
-        sftCnt <= sftCnt + 1;
+            sftCnt <= sftCnt + 1;
     end
 end
 //write enable logic
 always @(*) begin
-    if(currentState == pShiftDR && IR == CONFIG && sync && sftCnt == 7)
+    if(currentState == pShiftDR && IR == CONFIG && sync && sftCnt == 15)
         oWrEn = 1'b1;
     else
         oWrEn = 1'b0;

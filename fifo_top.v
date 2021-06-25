@@ -39,14 +39,14 @@ input iRCLK;
 *Register/wire definition begin
 *
 ********************************************/
-//for output
+//for wire
 reg oFULL;
 reg oEMPT;
-reg[DATAWIDTH -1:0] oRDAT;
+wire[DATAWIDTH -1:0] oRDAT;
 //for fifo storage
 reg[DATAWIDTH - 1:0] fifoRegs[15:0];
 reg C;
-reg E;
+wire En;
 reg[3:0] rAddr;//check already
 reg[3:0] wAddr;//check already
 //for sync read/write ptr
@@ -83,14 +83,17 @@ reg rAddrMsb;
 //assign C = iWCLK;
 //assign E = (~oFULL) & iWINC;
 //assign oRDAT = fifoRegs[rAddr];
-always @ (*) begin
-    C = iWCLK;
-    E = (~oFULL) & iWINC;
-    oRDAT = fifoRegs[rAddr];
-end
 
-always @(posedge C) begin
-    if(E)
+assign En = (~oFULL) & iWINC;
+assign oRDAT = fifoRegs[rAddr];
+
+integer k;
+always @(posedge iWCLK or posedge iWRST) begin
+    if(iWRST)
+	for(k = 0;k < 16;k = k + 1)begin
+		fifoRegs[k] <= 0;
+	end
+    else if(En)
         fifoRegs[wAddr] <= iWDAT; 
 end
 
@@ -226,7 +229,7 @@ end
 ********************************************/
 always @(posedge iRCLK or posedge iRRST) begin
     if(iRRST)
-        oEMPT <= 0;
+        oEMPT <= 1;
     else
         oEMPT <= (rgnext == wPtr2D);
 end

@@ -49,7 +49,7 @@ reg[7:0] setDataReg_Latch;
 wire oEMPT;
 wire[7:0] oRDAT;
 wire iWINC;
-wire iRINC;
+
 
 
 wire[7:0] D7_D0;
@@ -81,7 +81,7 @@ fifo_top fifo_top_inst(
     .iRRST(~iTrst),
     .oEMPT(oEMPT),
     .oRDAT(oRDAT),
-    .iRINC(iRINC),
+    .iRINC(oRINC),
     .iRCLK(iTck)
 );
 
@@ -108,6 +108,6 @@ end
 always @(negedge oWrEn)begin
     setDataReg_Latch <= setDataReg;
 end
-assign iRINC = ~oEMPT;
+
 
 endmodule
